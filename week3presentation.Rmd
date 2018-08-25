@@ -1,0 +1,58 @@
+---
+title: "Week 3 Assigment"
+author: "José Manuel Peñas"
+date: "August 25, 2018"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2);library(plotly)
+```
+
+## Overview
+
+This presentation is going to use the same data used on week 2 assigment:
+- the dataset with the French municipalities seen on [r-bloggers](https://www.r-bloggers.com/french-dataset-population-and-gps-coordinates/).
+This document will show an interactive scatter plot that will compare the growth population between the period **1975-2010** with the population recorded at the begining of the study on **1975**.
+
+
+## Getting & Cleaning the data
+Now, the following steps are going to be taken in order to get and clean the data to show in the plot.
+
+- Download the csv file from the original web
+```{r getting, echo=FALSE}
+if (!file.exists("./data/popfr19752010.csv")) {
+      download.file(
+      "http://freakonometrics.free.fr/popfr19752010.csv","./data/popfr19752010.csv"
+      )
+      
+}
+popfr=read.csv("./data/popfr19752010.csv",header=TRUE, stringsAsFactors = F)
+```
+- Keep only commune names and the population at 1975 and 2010.
+```{r cleaning_columns, echo=FALSE}
+popfr <- subset(popfr[,c(5,8,43)],pop_2010 > 10000)
+```
+
+- Create a new column with percentage growth between 1975 and 2010.
+```{r growth, echo=FALSE}
+popfr$growth <- (popfr$pop_2010 - popfr$pop_1975)/popfr$pop_1975*100
+popfr <- subset(popfr, growth < 100)
+head(popfr)
+```
+
+
+## Plot with GGPlotly
+
+```{r pressure, echo=FALSE, message=FALSE}
+g <- ggplot(data=popfr,aes(x=log10(pop_1975), y=growth))+ geom_point(data=popfr, alpha=.5) + geom_smooth()
+gg <- ggplotly(g)
+gg
+```
+
+## Plot with Plotly
+
+```{r plotly, echo=FALSE, message=FALSE}
+plot_ly(data=popfr,x=log10(popfr$pop_1975),y=popfr$growth, mode="markers")
+```
